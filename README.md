@@ -20,7 +20,74 @@ yarn:
 
 # Usage
 
-example for uploading multiple/single images:
+```
+const express = require("express");
+const multer = require("multer");
+const MulterSharpResizer = require("multer-sharp-resizer");
+
+    ...
+
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = `${today.getMonth() + 1}`.padStart(2, "0");
+
+    const filename = `gallery-${Date.now()}.jpeg`;
+
+    const sizes = [
+      {
+        path: "original",
+        width: null,
+        height: null,
+      },
+      {
+        path: "large",
+        width: 800,
+        height: 800,
+      },
+      {
+        path: "medium",
+        width: 300,
+        height: 300,
+      },
+      {
+        path: "thumbnail",
+        width: 100,
+        height: 100,
+      },
+    ];
+
+    const uploadPath = `./public/uploads/${year}/${month}`;
+
+    const fileUrl = `${req.protocol}://${req.get(
+      "host"
+    )}/uploads/${year}/${month}`;
+
+    // sharp options
+    const sharpOptions = {
+      fit: "contain",
+      background: { r: 255, g: 255, b: 255 },
+    };
+
+    // create a new instance of MulterSharpResizer and pass params
+    const resizeObj = new MulterSharpResizer(
+      req,
+      filename,
+      sizes,
+      uploadPath,
+      fileUrl,
+      sharpOptions
+    );
+
+    // call resize method for resizing files
+    resizeObj.resize();
+
+    // get details of uploaded files
+    const images = resizeObj.getData();
+
+    ....
+```
+
+#### example for uploading multiple/single images:
 
 ```const express = require("express");
 const multer = require("multer");
