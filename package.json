@@ -3,6 +3,14 @@
   "version": "1.0.0",
   "description": "Resize image with node.js, multer.js and sharp.js",
   "main": "index.js",
+  "homepage": "https://github.com/mohammadoftadeh/multer-sharp-resizer",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mohammadoftadeh/multer-sharp-resizer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mohammadoftadeh/multer-sharp-resizer/issues"
+  },
   "keywords": [
     "resize",
     "node.js",
@@ -10,7 +18,7 @@
     "multer.js",
     "resize image with node.js, multer.js and sharp.js "
   ],
-  "author": "Mohammad Oftadeh",
+  "author": "Mohammad Oftadeh <mr.mohammadoftadeh@gmail.com> (https://www.linkedin.com/in/mohammad-oftadeh/)",
   "license": "MIT",
   "dependencies": {
     "fs-extra": "^9.0.0",
