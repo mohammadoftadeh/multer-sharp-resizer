@@ -20,7 +20,7 @@ yarn:
 
 # Usage
 
-```
+```javascript
 const express = require("express");
 const multer = require("multer");
 const MulterSharpResizer = require("multer-sharp-resizer");
@@ -89,7 +89,8 @@ const MulterSharpResizer = require("multer-sharp-resizer");
 
 #### example for uploading multiple/single images:
 
-```const express = require("express");
+```javascript
+const express = require("express");
 const multer = require("multer");
 const MulterSharpResizer = require("multer-sharp-resizer");
 
@@ -263,7 +264,7 @@ app.listen(port, () => console.log("server running on port 8000..."));
 
 ### Outputs of above examples:
 
-```
+```json
 // example uploading multiple files
 // result: uploaded multiple images with resizing
 {
@@ -365,23 +366,23 @@ app.listen(port, () => console.log("server running on port 8000..."));
 
 ### Params
 
-```
+```javascript
 /**
-* Constructor method
-* @param  {object} req
-* @param  {string} filename
-* @param  {array} sizes
-* @param  {string} uploadPath
-* @param  {string} fileUrl
-* @param  {Object} sharpOptions
-*/
+ * Constructor method
+ * @param  {object} req
+ * @param  {string} filename
+ * @param  {array} sizes
+ * @param  {string} uploadPath
+ * @param  {string} fileUrl
+ * @param  {Object} sharpOptions
+ */
 const resizeObj = new MulterSharpResizer(
-    req,
-    filename,
-    sizes,
-    uploadPath,
-    fileUrl,
-    sharpOptions
+  req,
+  filename,
+  sizes,
+  uploadPath,
+  fileUrl,
+  sharpOptions
 );
 ```
 
@@ -396,28 +397,28 @@ const resizeObj = new MulterSharpResizer(
 
 ### Sizing structure
 
-```
+```javascript
 const sizes = [
-    {
-        path: "original",
-        width: null,
-        height: null,
-    },
-    {
-        path: "large",
-        width: 800,
-        height: 800,
-    },
-    {
-        path: "medium",
-        width: 300,
-        height: 300,
-    },
-    {
-        path: "thumbnail",
-        width: 100,
-        height: 100,
-    },
+  {
+    path: "original",
+    width: null,
+    height: null,
+  },
+  {
+    path: "large",
+    width: 800,
+    height: 800,
+  },
+  {
+    path: "medium",
+    width: 300,
+    height: 300,
+  },
+  {
+    path: "thumbnail",
+    width: 100,
+    height: 100,
+  },
 ];
 ```
 
