@@ -1,0 +1,20 @@
+{
+  "name": "multer-sharp-resizer",
+  "version": "1.0.0",
+  "description": "Resize image with node.js, multer.js and sharp.js",
+  "main": "index.js",
+  "keywords": [
+    "resize",
+    "node.js",
+    "sharp.js",
+    "multer.js",
+    "resize image with node.js, multer.js and sharp.js "
+  ],
+  "author": "Mohammad Oftadeh",
+  "license": "MIT",
+  "dependencies": {
+    "fs-extra": "^9.0.0",
+    "multer": "^1.4.2",
+    "sharp": "^0.25.3"
+  }
+}
