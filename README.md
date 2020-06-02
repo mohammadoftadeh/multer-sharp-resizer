@@ -12,11 +12,15 @@ see more details [Docs](https://github.com/mohammadoftadeh/multer-sharp-resizer)
 
 npm:
 
-`npm i multer-sharp-resizer`
+```
+$ npm i multer-sharp-resizer
+```
 
 yarn:
 
-`yarn add multer-sharp-resizer`
+```
+$ yarn add multer-sharp-resizer
+```
 
 # Usage
 
