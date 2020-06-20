@@ -1,6 +1,6 @@
 {
   "name": "multer-sharp-resizer",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "Resize image with node.js, multer.js and sharp.js",
   "main": "index.js",
   "homepage": "https://github.com/mohammadoftadeh/multer-sharp-resizer",

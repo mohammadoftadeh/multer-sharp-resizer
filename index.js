@@ -91,10 +91,9 @@ module.exports = class MulterSharpResizer {
     Promise.all(
       this.sizes.map((size) => {
         this.imageExt = file.mimetype.split("/")[1];
-        this.imageFilename = this.filename.replace(
-          `.${this.imageExt}`,
-          `${i != undefined ? `-${i}` : ""}-${size.path}.${this.imageExt}`
-        );
+        this.imageFilename = `${this.filename.split(/\.([^.]+)$/)[0]}${
+          i != undefined ? `-${i}` : ""
+        }-${size.path}.${this.imageExt}`;
         this.imageUploadPath = this.uploadPath.concat(`/${size.path}`);
         fs.mkdirsSync(this.imageUploadPath);
         this.filesUploaded.push({

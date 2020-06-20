@@ -13,13 +13,13 @@ see more details [Docs](https://github.com/mohammadoftadeh/multer-sharp-resizer)
 npm:
 
 ```
-$ npm i multer-sharp-resizer
+$ npm i multer multer-sharp-resizer
 ```
 
 yarn:
 
 ```
-$ yarn add multer-sharp-resizer
+$ yarn add multer multer-sharp-resizer
 ```
 
 # Usage
@@ -35,7 +35,7 @@ const MulterSharpResizer = require("multer-sharp-resizer");
     const year = today.getFullYear();
     const month = `${today.getMonth() + 1}`.padStart(2, "0");
 
-    const filename = `gallery-${Date.now()}.jpeg`;
+    const filename = `gallery-${Date.now()}`;
 
     const sizes = [
       {
@@ -126,7 +126,7 @@ const resizeImagesGalleryFunc = async (req, res) => {
     const year = today.getFullYear();
     const month = `${today.getMonth() + 1}`.padStart(2, "0");
 
-    const filename = `gallery-${Date.now()}.jpeg`;
+    const filename = `gallery-${Date.now()}`;
 
     const sizes = [
       {
@@ -198,7 +198,7 @@ const resizeImagesSingleFunc = async (req, res) => {
     const year = today.getFullYear();
     const month = `${today.getMonth() + 1}`.padStart(2, "0");
 
-    const filename = `profile-${Date.now()}.jpeg`;
+    const filename = `profile-${Date.now()}`;
 
     const sizes = [
       {
