@@ -83,7 +83,7 @@ const MulterSharpResizer = require("multer-sharp-resizer");
     );
 
     // call resize method for resizing files
-    resizeObj.resize();
+    await resizeObj.resize();
 
     // get details of uploaded files
     const images = resizeObj.getData();
@@ -95,12 +95,12 @@ const MulterSharpResizer = require("multer-sharp-resizer");
 
 ```javascript
 const express = require("express");
+const app = express();
 const multer = require("multer");
 const MulterSharpResizer = require("multer-sharp-resizer");
 
-const app = express();
-
 app.use(express.static(`${__dirname}/public`));
+app.use(express.json());
 
 const multerStorage = multer.memoryStorage();
 
@@ -118,152 +118,105 @@ const upload = multer({
   fileFilter: multerFilter,
 });
 
-// upload multiple images example
-// resize multiple images function
-const resizeImagesGalleryFunc = async (req, res) => {
-  try {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = `${today.getMonth() + 1}`.padStart(2, "0");
+// *****  Multer .fields() *****
+const uploadProductImages = upload.fields([
+  { name: "cover", maxCount: 2 },
+  { name: "gallery", maxCount: 4 },
+]);
 
-    const filename = `gallery-${Date.now()}`;
+// *****  Multer .array() *****
+// const uploadProductImages = upload.array("gallery", 4);
 
-    const sizes = [
-      {
-        path: "original",
-        width: null,
-        height: null,
-      },
-      {
-        path: "large",
-        width: 800,
-        height: 800,
-      },
-      {
-        path: "medium",
-        width: 300,
-        height: 300,
-      },
-      {
-        path: "thumbnail",
-        width: 100,
-        height: 100,
-      },
-    ];
+// *****  Multer .single() *****
+// const uploadProductImages = upload.single("cover");
 
-    const uploadPath = `./public/uploads/${year}/${month}`;
+const resizerImages = async (req, res, next) => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = `${today.getMonth() + 1}`.padStart(2, "0");
 
-    const fileUrl = `${req.protocol}://${req.get(
-      "host"
-    )}/uploads/${year}/${month}`;
+  // Used by multer .array() or .single
+  // const filename = `gallery-${Date.now()}`;
 
-    // sharp options
-    const sharpOptions = {
-      fit: "contain",
-      background: { r: 255, g: 255, b: 255 },
-    };
+  // Used by multer .fields and filename must be same object prop
+  const filename = {
+    cover: `cover-${Date.now()}`,
+    gallery: `gallery-${Date.now()}`,
+  };
 
-    // create a new instance of MulterSharpResizer and pass params
-    const resizeObj = new MulterSharpResizer(
-      req,
-      filename,
-      sizes,
-      uploadPath,
-      fileUrl,
-      sharpOptions
-    );
+  const sizes = [
+    {
+      path: "original",
+      width: null,
+      height: null,
+    },
+    {
+      path: "large",
+      width: 800,
+      height: 950,
+    },
+    {
+      path: "medium",
+      width: 300,
+      height: 450,
+    },
+    {
+      path: "thumbnail",
+      width: 100,
+      height: 250,
+    },
+  ];
 
-    // call resize method for resizing files
-    resizeObj.resize();
+  const uploadPath = `./public/uploads/${year}/${month}`;
 
-    // get details of uploaded files
-    const images = resizeObj.getData();
+  const fileUrl = `${req.protocol}://${req.get(
+    "host"
+  )}/uploads/${year}/${month}`;
 
-    res.status(200).json({
-      status: "success",
-      data: {
-        gallery: images,
-      },
-    });
-  } catch (err) {
-    console.log(err);
-  }
+  // sharp options
+  const sharpOptions = {
+    fit: "contain",
+    background: { r: 255, g: 255, b: 255 },
+  };
+
+  // create a new instance of MulterSharpResizer and pass params
+  const resizeObj = new MulterSharpResizer(
+    req,
+    filename,
+    sizes,
+    uploadPath,
+    fileUrl,
+    sharpOptions
+  );
+
+  // call resize method for resizing files
+  await resizeObj.resize();
+  const getDataUploaded = resizeObj.getData();
+
+  // Get details of uploaded files: Used by multer fields
+  req.body.cover = getDataUploaded.cover;
+  req.body.gallery = getDataUploaded.gallery;
+
+  // Get details of uploaded files: Used by multer .array() or .single()
+  // req.body.cover = getDataUploaded;
+  // req.body.gallery = getDataUploaded;
+
+  next();
 };
 
-// upload single image example
-// resize single image function
-const resizeImagesSingleFunc = async (req, res) => {
-  try {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = `${today.getMonth() + 1}`.padStart(2, "0");
-
-    const filename = `profile-${Date.now()}`;
-
-    const sizes = [
-      {
-        path: "original",
-        width: null,
-        height: null,
-      },
-      {
-        path: "large",
-        width: 800,
-        height: 800,
-      },
-      {
-        path: "medium",
-        width: 300,
-        height: 300,
-      },
-      {
-        path: "thumbnail",
-        width: 100,
-        height: 100,
-      },
-    ];
-
-    const uploadPath = `./public/uploads/${year}/${month}`;
-
-    const fileUrl = `${req.protocol}://${req.get(
-      "host"
-    )}/uploads/${year}/${month}`;
-
-    const sharpOptions = {
-      fit: "contain",
-      background: { r: 255, g: 255, b: 255 },
-    };
-
-    const resizeObj2 = new MulterSharpResizer(
-      req,
-      filename,
-      sizes,
-      uploadPath,
-      fileUrl,
-      sharpOptions
-    );
-    resizeObj2.resize();
-    const image = resizeObj2.getData();
-
-    res.status(200).json({
-      status: "success",
-      data: {
-        avatar: image,
-      },
-    });
-  } catch (err) {
-    console.log(err);
-  }
+const createProduct = async (req, res, next) => {
+  res.status(201).json({
+    status: "success",
+    cover: req.body.cover,
+    gallery: req.body.gallery,
+  });
 };
 
-// route for see results of uploaded multiple images
-app.post("/bulk", upload.array("galleries", 4), resizeImagesGalleryFunc);
-
-// route for see results of uploaded single image
-app.post("/single", upload.single("profile"), resizeImagesSingleFunc);
+// route for see results of uploaded images
+app.post("/products", uploadProductImages, resizerImages, createProduct);
 
 const port = 8000;
-app.listen(port, () => console.log("server running on port 8000..."));
+app.listen(port, () => console.log(`app running on port ${port}...`));
 ```
 
 ### Outputs of above examples:
@@ -313,25 +266,7 @@ app.listen(port, () => console.log("server running on port 8000..."));
                     "path": "http://127.0.0.1:8000/uploads/2020/06/thumbnail/gallery-1590999763786-1-thumbnail.jpeg"
                 }
             },
-            {
-                "originalname": "michael-dam-mEZ3PoFGs_k-unsplash.jpg",
-                "original": {
-                    "filename": "gallery-1590999763786-2-original.jpeg",
-                    "path": "http://127.0.0.1:8000/uploads/2020/06/original/gallery-1590999763786-2-original.jpeg"
-                },
-                "large": {
-                    "filename": "gallery-1590999763786-2-large.jpeg",
-                    "path": "http://127.0.0.1:8000/uploads/2020/06/large/gallery-1590999763786-2-large.jpeg"
-                },
-                "medium": {
-                    "filename": "gallery-1590999763786-2-medium.jpeg",
-                    "path": "http://127.0.0.1:8000/uploads/2020/06/medium/gallery-1590999763786-2-medium.jpeg"
-                },
-                "thumbnail": {
-                    "filename": "gallery-1590999763786-2-thumbnail.jpeg",
-                    "path": "http://127.0.0.1:8000/uploads/2020/06/thumbnail/profile-1590999763786-2-thumbnail.jpeg"
-                }
-            }
+            ....
         ]
     }
 }
@@ -366,6 +301,57 @@ app.listen(port, () => console.log("server running on port 8000..."));
         ]
     }
 }
+
+
+// example uploading multer fields
+// result: uploaded image with grouping by field and resizing
+{
+    "status": "success",
+    "cover": [
+        {
+            "originalname": "screencapture-cart-2020-04-28-11_34_35.png",
+            "original": {
+                "filename": "cover-1592806057900-0-original.png",
+                "path": "http://127.0.0.1:8000/uploads/2020/06/original/cover-1592806057900-0-original.png"
+            },
+            "large": {
+                "filename": "cover-1592806057900-0-large.png",
+                "path": "http://127.0.0.1:8000/uploads/2020/06/large/cover-1592806057900-0-large.png"
+            },
+            "medium": {
+                "filename": "cover-1592806057900-0-medium.png",
+                "path": "http://127.0.0.1:8000/uploads/2020/06/medium/cover-1592806057900-0-medium.png"
+            },
+            "thumbnail": {
+                "filename": "cover-1592806057900-0-thumbnail.png",
+                "path": "http://127.0.0.1:8000/uploads/2020/06/thumbnail/cover-1592806057900-0-thumbnail.png"
+            }
+        },
+        ....
+    ],
+    "gallery": [
+        {
+            "originalname": "andre-hunter-p-I9wV811qk-unsplash.jpg",
+            "original": {
+                "filename": "gallery-1592806057900-0-original.jpeg",
+                "path": "http://127.0.0.1:8000/uploads/2020/06/original/gallery-1592806057900-0-original.jpeg"
+            },
+            "large": {
+                "filename": "gallery-1592806057900-0-large.jpeg",
+                "path": "http://127.0.0.1:8000/uploads/2020/06/large/gallery-1592806057900-0-large.jpeg"
+            },
+            "medium": {
+                "filename": "gallery-1592806057900-0-medium.jpeg",
+                "path": "http://127.0.0.1:8000/uploads/2020/06/medium/gallery-1592806057900-0-medium.jpeg"
+            },
+            "thumbnail": {
+                "filename": "gallery-1592806057900-0-thumbnail.jpeg",
+                "path": "http://127.0.0.1:8000/uploads/2020/06/thumbnail/gallery-1592806057900-0-thumbnail.jpeg"
+            }
+        },
+        ....
+    ]
+}
 ```
 
 ### Params
@@ -374,7 +360,7 @@ app.listen(port, () => console.log("server running on port 8000..."));
 /**
  * Constructor method
  * @param  {object} req
- * @param  {string} filename
+ * @param  {string || object} filename
  * @param  {array} sizes
  * @param  {string} uploadPath
  * @param  {string} fileUrl
@@ -393,7 +379,7 @@ const resizeObj = new MulterSharpResizer(
 | param        | role                                                                                                      |
 | ------------ | --------------------------------------------------------------------------------------------------------- |
 | req          | Express request object                                                                                    |
-| filename     | Set custom filename for storage                                                                           |
+| filename     | `String for array/single and Object{ } for multer fields` Set custom filename for storage                 |
 | sizes        | Array of objects sizes for storage image with multiple sizes                                              |
 | uploadPath   | Set custom path for storage uploaded files                                                                |
 | fileUrl      | Set url for access files with url(link)                                                                   |

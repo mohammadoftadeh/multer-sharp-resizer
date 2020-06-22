@@ -5,7 +5,7 @@ module.exports = class MulterSharpResizer {
   /**
    * Constructor method
    * @param  {object} req
-   * @param  {string} filename
+   * @param  {string || object} filename
    * @param  {array} sizes
    * @param  {string} uploadPath
    * @param  {string} fileUrl
@@ -30,8 +30,28 @@ module.exports = class MulterSharpResizer {
    * Resize files method
    */
   async resize() {
+    if (this.req.files) {
+      if (!this.req.files.map) {
+        for (const prop in this.req.files) {
+          await Promise.all(
+            this.req.files[prop].map(async (file, i) => {
+              await this.promiseAllResize(
+                file,
+                i,
+                prop,
+                typeof this.filename === "object"
+                  ? this.filename[prop]
+                  : this.filename
+              );
+            })
+          );
+        }
+        return;
+      }
+    }
+
     // Check multiple files
-    if (!this.req.files) {
+    if (this.req.file) {
       return await this.promiseAllResize(this.req.file);
     }
 
@@ -51,10 +71,14 @@ module.exports = class MulterSharpResizer {
     // Check multiple files
     // Categorize files by size
     if (this.req.files) {
-      for (let i = 0; i < this.req.files.length - 1; i++) {
-        this.data.push({
-          ...this.filesUploaded.splice(0, this.sizes.length),
-        });
+      if (!this.req.files.map) {
+        return this.removeProp(this.getDataWithFields(), "field");
+      } else {
+        for (let i = 0; i < this.req.files.length - 1; i++) {
+          this.data.push({
+            ...this.filesUploaded.splice(0, this.sizes.length),
+          });
+        }
       }
     }
 
@@ -73,10 +97,13 @@ module.exports = class MulterSharpResizer {
   renameKeys(keysMap, obj) {
     return Object.keys(obj).reduce((acc, key) => {
       this.tmpOriginalname = obj[key].originalname;
+      this.tmpField = obj[key].field;
       delete obj[key].originalname;
+      delete obj[key].field;
       return {
         ...acc,
         originalname: this.tmpOriginalname,
+        field: this.tmpField,
         ...{ [keysMap[key] || key]: obj[key] },
       };
     }, {});
@@ -87,17 +114,18 @@ module.exports = class MulterSharpResizer {
    * @param  {object} file
    * @param  {number} i
    */
-  promiseAllResize(file, i) {
+  promiseAllResize(file, i, prop = "", filenameParam = this.filename) {
     Promise.all(
       this.sizes.map((size) => {
         this.imageExt = file.mimetype.split("/")[1];
-        this.imageFilename = `${this.filename.split(/\.([^.]+)$/)[0]}${
+        this.imageFilename = `${filenameParam.split(/\.([^.]+)$/)[0]}${
           i != undefined ? `-${i}` : ""
         }-${size.path}.${this.imageExt}`;
         this.imageUploadPath = this.uploadPath.concat(`/${size.path}`);
         fs.mkdirsSync(this.imageUploadPath);
         this.filesUploaded.push({
           originalname: file.originalname,
+          ...(prop && { field: prop }),
           filename: this.imageFilename,
           path: `${this.fileUrl}/${size.path}/${this.imageFilename}`,
         });
@@ -106,5 +134,59 @@ module.exports = class MulterSharpResizer {
           .toFile(`${this.imageUploadPath}/${this.imageFilename}`);
       })
     );
+  }
+
+  /**
+   * Grouping data by field
+   * Return Data that send with multer fields method
+   */
+  getDataWithFields() {
+    for (const prop in this.req.files) {
+      for (let i = 0; i < this.req.files[prop].length; i++) {
+        this.data.push({
+          ...this.filesUploaded.splice(0, this.sizes.length),
+        });
+      }
+    }
+
+    return this.groupByFields(
+      this.data.map((file) =>
+        this.renameKeys({ ...this.sizes.map((size, i) => size.path) }, file)
+      ),
+      "field"
+    );
+  }
+
+  /**
+   * Grouping data by specific property method
+   * @param  {array} array
+   * @param  {property} prop
+   */
+  groupByFields(array, prop) {
+    return array.reduce(function (r, a) {
+      r[a[prop]] = r[a[prop]] || [];
+      r[a[prop]].push(a);
+      return r;
+    }, Object.create(null));
+  }
+
+  /**
+   * Remove specific property method
+   * @param  {object} obj
+   * @param  {string} propToDelete
+   */
+  removeProp(obj, propToDelete) {
+    for (var property in obj) {
+      if (typeof obj[property] == "object") {
+        delete obj.property;
+        let newJsonData = this.removeProp(obj[property], propToDelete);
+        obj[property] = newJsonData;
+      } else {
+        if (property === propToDelete) {
+          delete obj[property];
+        }
+      }
+    }
+    return obj;
   }
 };
