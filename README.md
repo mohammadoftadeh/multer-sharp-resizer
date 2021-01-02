@@ -6,7 +6,7 @@
 
 # Documentation
 
-see more details [Docs](https://github.com/mohammadoftadeh/multer-sharp-resizer).
+[![Node.js uploading image with multer and multer-sharp-resizer](https://github.com/mohammadoftadeh/repo-assets/blob/main/multer-sharp-resizer(nodejs%20upload).png?raw=true)](https://youtu.be/lgm5MfOFeLM)
 
 # Installation
 
