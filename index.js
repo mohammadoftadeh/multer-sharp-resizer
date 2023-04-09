@@ -1,5 +1,6 @@
 const fs = require("fs-extra");
 const sharp = require("sharp");
+const ma = require("modern-async") 
 
 module.exports = class MulterSharpResizer {
   /**
@@ -33,18 +34,16 @@ module.exports = class MulterSharpResizer {
     if (this.req.files) {
       if (!this.req.files.map) {
         for (const prop in this.req.files) {
-          await Promise.all(
-            this.req.files[prop].map(async (file, i) => {
-              await this.promiseAllResize(
-                file,
-                i,
-                prop,
-                typeof this.filename === "object"
-                  ? this.filename[prop]
-                  : this.filename
-              );
-            })
-          );
+          await ma.map(this.req.files[prop], async (file, i) => {
+            await this.promiseAllResize(
+              file,
+              i,
+              prop,
+              typeof this.filename === "object"
+                ? this.filename[prop]
+                : this.filename
+            );
+          })
         }
         return;
       }
@@ -56,11 +55,10 @@ module.exports = class MulterSharpResizer {
     }
 
     // Promise.all() multiple files for resizing
-    await Promise.all(
-      this.req.files.map(async (file, i) => {
-        await this.promiseAllResize(file, i);
-      })
-    );
+    await map(req.files, async (file, i) => {
+      await this.promiseAllResize(file, i);
+    })
+   
   }
 
   /**
@@ -114,26 +112,24 @@ module.exports = class MulterSharpResizer {
    * @param  {object} file
    * @param  {number} i
    */
-  promiseAllResize(file, i, prop = "", filenameParam = this.filename) {
-    Promise.all(
-      this.sizes.map((size) => {
-        this.imageExt = file.mimetype.split("/")[1];
-        this.imageFilename = `${filenameParam.split(/\.([^.]+)$/)[0]}${
-          i != undefined ? `-${i}` : ""
-        }-${size.path}.${this.imageExt}`;
-        this.imageUploadPath = this.uploadPath.concat(`/${size.path}`);
-        fs.mkdirsSync(this.imageUploadPath);
-        this.filesUploaded.push({
-          originalname: file.originalname,
-          ...(prop && { field: prop }),
-          filename: this.imageFilename,
-          path: `${this.fileUrl}/${size.path}/${this.imageFilename}`,
-        });
-        return sharp(file.buffer)
-          .resize(size.width, size.height, this.sharpOptions)
-          .toFile(`${this.imageUploadPath}/${this.imageFilename}`);
-      })
-    );
+  async promiseAllResize(file, i, prop = "", filenameParam = this.filename) {
+    await ma.map(this.sizes, async (size) => {
+      this.imageExt = file.mimetype.split("/")[1];
+      this.imageFilename = `${filenameParam.split(/\.([^.]+)$/)[0]}${
+        i != undefined ? `-${i}` : ""
+      }-${size.path}.${this.imageExt}`;
+      this.imageUploadPath = this.uploadPath.concat(`/${size.path}`);
+      fs.mkdirsSync(this.imageUploadPath);
+      this.filesUploaded.push({
+        originalname: file.originalname,
+        ...(prop && { field: prop }),
+        filename: this.imageFilename,
+        path: `${this.fileUrl}/${size.path}/${this.imageFilename}`,
+      });
+      return await sharp(file.buffer)
+        .resize(size.width, size.height, this.sharpOptions)
+        .toFile(`${this.imageUploadPath}/${this.imageFilename}`);
+    })
   }
 
   /**
@@ -144,7 +140,7 @@ module.exports = class MulterSharpResizer {
     for (const prop in this.req.files) {
       for (let i = 0; i < this.req.files[prop].length; i++) {
         this.data.push({
-          ...this.filesUploaded.splice(0, this.sizes.length),
+          ...this.filesUploaded.sort((a, b) => a.originalname.localeCompare(b.originalname)).splice(0, this.sizes.length),
         });
       }
     }
